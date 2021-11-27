@@ -41,7 +41,6 @@ fun evaluateFileAndExit(file: String) {
 fun start(
     file: String? = null,
     withInit: Boolean = true,
-    runTests: Boolean = false,
     args: Array<String>?
 ) {
     args?.let {
@@ -63,7 +62,6 @@ fun start(
     }
     when {
         file != null -> evaluateFileAndExit(file)
-        runTests -> Unit // TODO: start test: `runSuite()`
         else -> {
             banner()
             mainLoop()
@@ -73,7 +71,8 @@ fun start(
 
 fun banner() {
 
-    val bannerExpression = """(println (str "Mal [" *host-language* "]"))"""
+    val versionString = "0.0.1"
+    val bannerExpression = "(println \"krisp v$versionString \")"
 
     try {
         rep(bannerExpression, replExecutionEnv)
@@ -90,17 +89,15 @@ fun printHelp() {
     out("")
     out("options:")
     out("--skipInit\t\t\tDo not run init")
-    out("--runTests\t\t\tRun tests and quit")
     out("--help|-h\t\t\t\tPrint help and quit")
 }
 
 fun main(args: Array<String>) {
     val file = args.getOrNull(0)?.let { if (it.startsWith("-")) null else it }
     val withInit = !args.contains("--skipInit")
-    val runTests = args.contains("--runTests")
     val printHelp = args.contains("--help") || args.contains("-h")
     when {
         printHelp -> printHelp()
-        else -> start(file, withInit, runTests, args)
+        else -> start(file, withInit, args)
     }
 }

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.ninjacontrol"
-version = "1.0-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -24,4 +24,10 @@ tasks.withType<Jar> {
     configurations["compileClasspath"].forEach { file: File ->
         from(zipTree(file.absoluteFile)).duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
+}
+
+task<JavaExec>("run-tests") {
+    dependsOn("testClasses")
+    mainClass.set("com.ninjacontrol.krisp.TestRunnerKt")
+    classpath = sourceSets["test"].runtimeClasspath
 }
