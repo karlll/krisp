@@ -1,6 +1,6 @@
 # krisp
 
-A Lisp in Kotlin
+A Lisp on the JVM
 
 ## Build
 
