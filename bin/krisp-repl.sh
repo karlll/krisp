@@ -1,4 +1,4 @@
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+#!/usr/bin/env bash
 
-java -jar "${SCRIPT_DIR}/../build/libs/krisp-0.0.1-SNAPSHOT.jar"
-
+bin_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+java -jar "${bin_dir}/../build/libs/krisp-0.0.1-SNAPSHOT.jar"
