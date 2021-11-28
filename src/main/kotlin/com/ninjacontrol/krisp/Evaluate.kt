@@ -21,7 +21,6 @@ object Symbols {
     val macroExpand = MalSymbol("macroexpand")
     val `try` = MalSymbol("try*")
     val `catch` = MalSymbol("catch*")
-    val `throw` = MalSymbol("throw")
 }
 
 fun eval(ast: MalType, env: Environment): MalType {
@@ -85,7 +84,7 @@ fun eval(ast: MalType, env: Environment): MalType {
             head eq Symbols.`do` -> nextAst = `do`(currentAst.tail, currentEnv)
             head eq Symbols.`if` -> nextAst = `if`(currentAst.tail, currentEnv)
             head eq Symbols.fn -> nextAst = fn(currentAst.tail, currentEnv)
-            head eq Symbols.quote -> return quote(currentAst.tail, currentEnv)
+            head eq Symbols.quote -> return quote(currentAst.tail)
             head eq Symbols.quasiquoteexpand -> return quasiquote(
                 unwrapSingle(currentAst.tail),
                 currentEnv
@@ -131,7 +130,7 @@ fun tryCatch(ast: MalList, env: Environment): Pair<MalType, Environment> {
                         tryResult to env
                     } catch (e: Throwable) {
                         val exception =
-                            if (e is UserException) (e as UserException).toMap() else e.toMap()
+                            if (e is UserException) e.toMap() else e.toMap()
                         val bindSymbol = catchForm.get(1) as MalSymbol
                         val newEnv = Environment(outer = env)
                         val catchExpression = catchForm.get(2)
@@ -294,7 +293,7 @@ fun let(expressions: MalList, env: Environment): Pair<MalType, Environment?> {
     }
 }
 
-fun quote(ast: MalList, _env: Environment): MalType {
+fun quote(ast: MalList): MalType {
     return ast.getOrNull(0) ?: MalNil
 }
 

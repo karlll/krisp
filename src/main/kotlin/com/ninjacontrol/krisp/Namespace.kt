@@ -14,8 +14,8 @@ val namespace: EnvironmentMap = mutableMapOf(
     symbol("str") to str(),
     symbol("println") to println(),
     symbol("list") to list(),
-    symbol("list?") to `list?`(),
-    symbol("empty?") to `empty?`(),
+    symbol("list?") to isList(),
+    symbol("empty?") to isEmpty(),
     symbol("first") to first(),
     symbol("rest") to rest(),
     symbol("nth") to nth(),
@@ -30,7 +30,7 @@ val namespace: EnvironmentMap = mutableMapOf(
     symbol("slurp") to slurp(),
     symbol("atom") to atom(),
     symbol("deref") to deref(),
-    symbol("atom?") to `atom?`(),
+    symbol("atom?") to isAtom(),
     symbol("reset!") to reset(),
     symbol("swap!") to swap(),
     symbol("cons") to cons(),
@@ -39,20 +39,20 @@ val namespace: EnvironmentMap = mutableMapOf(
     symbol("throw") to `throw`(),
     symbol("apply") to apply(),
     symbol("map") to map(),
-    symbol("true?") to `true?`(),
-    symbol("false?") to `false?`(),
-    symbol("nil?") to `nil?`(),
-    symbol("symbol?") to `symbol?`(),
+    symbol("true?") to isTrue(),
+    symbol("false?") to isFalse(),
+    symbol("nil?") to isNil(),
+    symbol("symbol?") to isSymbol(),
     symbol("symbol") to symbol(),
     symbol("keyword") to keyword(),
-    symbol("vector?") to `vector?`(),
-    symbol("number?") to `number?`(),
-    symbol("map?") to `map?`(),
-    symbol("string?") to `string?`(),
-    symbol("fn?") to `fn?`(),
-    symbol("macro?") to `macro?`(),
-    symbol("keyword?") to `keyword?`(),
-    symbol("sequential?") to `sequential?`(),
+    symbol("vector?") to isVector(),
+    symbol("number?") to isNumber(),
+    symbol("map?") to isMap(),
+    symbol("string?") to isString(),
+    symbol("fn?") to isFn(),
+    symbol("macro?") to isMacro(),
+    symbol("keyword?") to isKeyword(),
+    symbol("sequential?") to isSequential(),
     symbol("vector") to vector(),
     symbol("hash-map") to `hash-map`(),
     symbol("assoc") to assoc(),
@@ -60,7 +60,7 @@ val namespace: EnvironmentMap = mutableMapOf(
     symbol("get") to get(),
     symbol("vals") to vals(),
     symbol("keys") to keys(),
-    symbol("contains?") to `contains?`(),
+    symbol("contains?") to doesContain(),
     symbol("readline") to readLineWithPrompt(),
     symbol("meta") to meta(),
     symbol("with-meta") to `with-meta`(),
@@ -263,14 +263,14 @@ fun not() = functionOfArity(1) {
 /* Lists */
 
 fun list() = func { MalList(it.toMutableList()) }
-fun `list?`() = functionOfArity(1) { args ->
+fun isList() = functionOfArity(1) { args ->
     when (args[0]) {
         is MalList -> True
         else -> False
     }
 }
 
-fun `empty?`() = functionOfArity(1) { args ->
+fun isEmpty() = functionOfArity(1) { args ->
     when (val arg = args[0]) {
         is MalList -> if (arg.isEmpty()) True else False
         is MalVector -> if (arg.isEmpty()) True else False
@@ -517,16 +517,16 @@ fun `throw`() = functionOfArity(1) { args ->
 
 /* Predicates */
 
-fun `nil?`() = functionOfArity(1) { args -> if (args[0] eq MalNil) True else False }
-fun `true?`() = functionOfArity(1) { args -> if (args[0] eq True) True else False }
-fun `false?`() = functionOfArity(1) { args -> if (args[0] eq False) True else False }
-fun `symbol?`() = functionOfArity(1) { args -> if (args[0] is MalSymbol) True else False }
-fun `atom?`() = functionOfArity(1) { args -> if (args[0] is MalAtom) True else False }
-fun `vector?`() = functionOfArity(1) { args -> if (args[0] is MalVector) True else False }
-fun `string?`() = functionOfArity(1) { args -> if (args[0] is MalString) True else False }
-fun `number?`() = functionOfArity(1) { args -> if (args[0] is MalInteger) True else False }
-fun `map?`() = functionOfArity(1) { args -> if (args[0] is MalMap) True else False }
-fun `fn?`() =
+fun isNil() = functionOfArity(1) { args -> if (args[0] eq MalNil) True else False }
+fun isTrue() = functionOfArity(1) { args -> if (args[0] eq True) True else False }
+fun isFalse() = functionOfArity(1) { args -> if (args[0] eq False) True else False }
+fun isSymbol() = functionOfArity(1) { args -> if (args[0] is MalSymbol) True else False }
+fun isAtom() = functionOfArity(1) { args -> if (args[0] is MalAtom) True else False }
+fun isVector() = functionOfArity(1) { args -> if (args[0] is MalVector) True else False }
+fun isString() = functionOfArity(1) { args -> if (args[0] is MalString) True else False }
+fun isNumber() = functionOfArity(1) { args -> if (args[0] is MalInteger) True else False }
+fun isMap() = functionOfArity(1) { args -> if (args[0] is MalMap) True else False }
+fun isFn() =
     functionOfArity(1) { args ->
         when (val arg = args[0]) {
             is MalFunctionContainer -> if (arg.isMacro) False else True
@@ -534,12 +534,12 @@ fun `fn?`() =
         }
     }
 
-fun `sequential?`() =
+fun isSequential() =
     functionOfArity(1) { args -> if (args[0] is MalList || args[0] is MalVector) True else False }
 
-fun `keyword?`() = functionOfArity(1) { args -> if (args[0] is MalKeyword) True else False }
+fun isKeyword() = functionOfArity(1) { args -> if (args[0] is MalKeyword) True else False }
 
-fun `macro?`() = functionOfArity(1) { args ->
+fun isMacro() = functionOfArity(1) { args ->
     when (val arg = args[0]) {
         is MalFunctionContainer -> if (arg.isMacro) True else False
         else -> False
@@ -552,7 +552,7 @@ fun symbol() = typedArgumentFunction<MalString>(arity = 1) { args ->
 
 fun keyword() = functionOfArity(1) { args ->
     when (val arg = args[0]) {
-        is MalString -> MalKeyword((arg as MalString).value)
+        is MalString -> MalKeyword(arg.value)
         is MalKeyword -> arg
         else -> throw InvalidArgumentException("Expected a string or a keyword argument")
     }
@@ -600,7 +600,7 @@ fun get() = functionOfArity(2) { args ->
     }
 }
 
-fun `contains?`() = functionOfArity(2) { args ->
+fun doesContain() = functionOfArity(2) { args ->
     if (args[0] !is MalMap) throw InvalidArgumentException("Expected first argument to be a map")
     (args[0] as MalMap).items.contains(args[1]).let { MalBoolean(it) }
 }
