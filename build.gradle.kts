@@ -26,8 +26,13 @@ tasks.withType<Jar> {
     }
 }
 
-task<JavaExec>("run-tests") {
+task<JavaExec>("run-internal-tests") {
     dependsOn("testClasses")
     mainClass.set("com.ninjacontrol.krisp.TestRunnerKt")
     classpath = sourceSets["test"].runtimeClasspath
+}
+task<Exec>("run-mal-regression-tests") {
+    dependsOn("jar")
+    workingDir = File("./src/test/mal")
+    commandLine = listOf("./regression-test.sh")
 }
