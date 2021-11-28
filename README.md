@@ -10,6 +10,12 @@ A Lisp on the JVM
 
     $ bin/krisp-repl.sh
 
-## Run tests
+## Test
 
-    $ gradle run-tests
+### Run internal tests
+
+    $ gradle run-internal-tests
+
+### Run MAL regression tests
+
+    $ gradle run-mal-regression-tests
