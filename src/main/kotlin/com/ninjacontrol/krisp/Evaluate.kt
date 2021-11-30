@@ -336,19 +336,3 @@ fun evalAst(ast: MalType, env: Environment): MalType = when (ast) {
     )
     else -> ast
 }
-
-fun print(input: MalType, printReadably: Boolean = true) =
-    out(printString(input, printReadably = printReadably))
-
-fun re(input: String, env: Environment) = eval(read(input), env = env)
-fun rep(input: String, env: Environment) = print(re(input, env = env))
-val replExecutionEnv = Environment().apply {
-    add(namespace)
-    set(
-        Symbols.eval,
-        func { args ->
-            eval(args[0], this)
-        }
-    )
-    set(symbol("*host-language*"), string("kotlin"))
-}

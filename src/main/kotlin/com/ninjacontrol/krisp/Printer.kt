@@ -1,5 +1,8 @@
 package com.ninjacontrol.krisp
 
+fun print(input: MalType, printReadably: Boolean = true) =
+    out(printString(input, printReadably = printReadably))
+
 fun printString(
     form: MalType,
     printReadably: Boolean = false,
@@ -70,5 +73,3 @@ fun envelope(withQuotes: Boolean, string: String) = when (withQuotes) {
     true -> "\"$string\""
     else -> string
 }
-
-fun out(string: String, newLine: Boolean = true) = if (newLine) println(string) else print(string)
