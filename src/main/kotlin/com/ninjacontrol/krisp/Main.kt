@@ -2,6 +2,21 @@ package com.ninjacontrol.krisp
 
 import kotlin.system.exitProcess
 
+val replExecutionEnv = Environment().apply {
+    add(namespace)
+    set(
+        Symbols.eval,
+        func { args ->
+            eval(args[0], this)
+        }
+    )
+    set(symbol("*host-language*"), string("kotlin"))
+}
+val init = listOf(
+    """(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))""",
+    """(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw "odd number of forms to cond")) (cons 'cond (rest (rest xs)))))))""",
+)
+
 tailrec fun mainLoop() {
     out(prompt(), newLine = false)
     readLine()?.let { input ->
@@ -21,10 +36,8 @@ tailrec fun mainLoop() {
     mainLoop()
 }
 
-val init = listOf(
-    """(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))""",
-    """(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw "odd number of forms to cond")) (cons 'cond (rest (rest xs)))))))""",
-)
+fun re(input: String, env: Environment) = eval(read(input), env = env)
+fun rep(input: String, env: Environment) = print(re(input, env = env))
 
 fun evaluateFileAndExit(file: String) {
     val expression = "(load-file \"$file\")"
@@ -43,6 +56,7 @@ fun start(
     withInit: Boolean = true,
     args: Array<String>?
 ) {
+    Output.outputter = StandardOut
     args?.let {
         replExecutionEnv.set(
             symbol("*ARGV*"),
