@@ -1,6 +1,6 @@
 package com.ninjacontrol.krisp
 
-class Reader(private val tokens: Array<String>) {
+class TokenReader(private val tokens: Array<String>) {
     private var pos = 0
     fun next(): String? = tokens.getOrNull(pos++)
     fun peek(): String? = tokens.getOrNull(pos)
@@ -17,46 +17,46 @@ fun trimmer(char: Char) = when (char) {
     else -> false
 }
 
-fun readStr(input: String): MalType = readForm(reader = Reader(tokens = tokenize(input)))
+fun readStr(input: String): MalType = readForm(tokenReader = TokenReader(tokens = tokenize(input)))
 
 fun tokenize(input: String) =
     tokenPattern.findAll(input).map { it.value.trim(::trimmer) }.toList().toTypedArray()
 
-fun readForm(reader: Reader): MalType {
-    return when (reader.currentFirst()) {
-        '(' -> readList(reader)
-        '[' -> readVector(reader)
-        '{' -> readMap(reader)
+fun readForm(tokenReader: TokenReader): MalType {
+    return when (tokenReader.currentFirst()) {
+        '(' -> readList(tokenReader)
+        '[' -> readVector(tokenReader)
+        '{' -> readMap(tokenReader)
         ';' -> {
-            reader.skip()
-            readForm(reader)
+            tokenReader.skip()
+            readForm(tokenReader)
         }
-        '\'' -> readQuote(reader)
-        '`' -> readQuote(reader, symbol = symbol("quasiquote"))
+        '\'' -> readQuote(tokenReader)
+        '`' -> readQuote(tokenReader, symbol = symbol("quasiquote"))
         '~' ->
-            if (reader.peek()?.let { it.getOrNull(1) == '@' } == true) {
-                readQuote(reader, symbol = symbol("splice-unquote"))
+            if (tokenReader.peek()?.let { it.getOrNull(1) == '@' } == true) {
+                readQuote(tokenReader, symbol = symbol("splice-unquote"))
             } else
-                readQuote(reader, symbol = symbol("unquote"))
-        '@' -> readDerefForm(reader)
-        '^' -> readWithMetaForm(reader)
+                readQuote(tokenReader, symbol = symbol("unquote"))
+        '@' -> readDerefForm(tokenReader)
+        '^' -> readWithMetaForm(tokenReader)
         null -> MalEOF
-        else -> readAtom(reader)
+        else -> readAtom(tokenReader)
     }
 }
 
-fun readWithMetaForm(reader: Reader): MalType {
-    reader.skip()
-    val metadata = readForm(reader)
-    val function = readForm(reader)
+fun readWithMetaForm(tokenReader: TokenReader): MalType {
+    tokenReader.skip()
+    val metadata = readForm(tokenReader)
+    val function = readForm(tokenReader)
     if (metadata == MalEOF || function == MalEOF) throw ParseException("Unexpected EOF")
     return list(symbol("with-meta"), function, metadata)
 }
 
-fun readDerefForm(reader: Reader): MalType {
-    reader.skip()
+fun readDerefForm(tokenReader: TokenReader): MalType {
+    tokenReader.skip()
     val list = list(symbol("deref"))
-    return when (val form = readForm(reader)) {
+    return when (val form = readForm(tokenReader)) {
         is MalError -> form
         is MalEOF -> throw ParseException("Unexpected EOF")
         else -> {
@@ -66,10 +66,10 @@ fun readDerefForm(reader: Reader): MalType {
     }
 }
 
-fun readQuote(reader: Reader, symbol: MalSymbol = symbol("quote")): MalType {
-    reader.skip()
+fun readQuote(tokenReader: TokenReader, symbol: MalSymbol = symbol("quote")): MalType {
+    tokenReader.skip()
     val list = list(symbol)
-    return when (val form = readForm(reader)) {
+    return when (val form = readForm(tokenReader)) {
         is MalError -> form
         is MalEOF -> throw ParseException("Unexpected EOF")
         else -> {
@@ -79,14 +79,14 @@ fun readQuote(reader: Reader, symbol: MalSymbol = symbol("quote")): MalType {
     }
 }
 
-fun readList(reader: Reader): MalType {
-    reader.skip() // skip list start marker
+fun readList(tokenReader: TokenReader): MalType {
+    tokenReader.skip() // skip list start marker
     val list = MalList(mutableListOf())
     while (true) {
-        if (reader.isCurrentFirst(')')) {
-            reader.skip() // end marker
+        if (tokenReader.isCurrentFirst(')')) {
+            tokenReader.skip() // end marker
             return list
-        } else when (val form = readForm(reader)) {
+        } else when (val form = readForm(tokenReader)) {
             is MalError -> return form
             is MalEOF -> throw ParseException("Unexpected EOF")
             else -> list.items.add(form)
@@ -94,14 +94,14 @@ fun readList(reader: Reader): MalType {
     }
 }
 
-fun readVector(reader: Reader): MalType {
-    reader.skip() // skip vector start marker
+fun readVector(tokenReader: TokenReader): MalType {
+    tokenReader.skip() // skip vector start marker
     val vector = MalVector(mutableListOf())
     while (true) {
-        if (reader.isCurrentFirst(']')) {
-            reader.skip() // end marker
+        if (tokenReader.isCurrentFirst(']')) {
+            tokenReader.skip() // end marker
             return vector
-        } else when (val form = readForm(reader)) {
+        } else when (val form = readForm(tokenReader)) {
             is MalError -> return form
             is MalEOF -> throw ParseException("Unexpected EOF")
             else -> vector.items.add(form)
@@ -109,19 +109,19 @@ fun readVector(reader: Reader): MalType {
     }
 }
 
-fun readMap(reader: Reader): MalType {
-    reader.skip() // skip map start marker
+fun readMap(tokenReader: TokenReader): MalType {
+    tokenReader.skip() // skip map start marker
     val map = MalMap(mutableMapOf())
     var key: MalType? = null
     while (true) {
-        if (reader.isCurrentFirst('}')) {
+        if (tokenReader.isCurrentFirst('}')) {
             return if (key == null) {
-                reader.skip()
+                tokenReader.skip()
                 map
             } else {
                 throw NotFoundException("Missing value for key=$key")
             }
-        } else when (val form = readForm(reader)) {
+        } else when (val form = readForm(tokenReader)) {
             is MalError -> return form
             is MalEOF -> throw ParseException("Unexpected EOF")
             else -> {
@@ -136,8 +136,8 @@ fun readMap(reader: Reader): MalType {
     }
 }
 
-fun readAtom(reader: Reader): MalType {
-    return reader.next()?.let { atom ->
+fun readAtom(tokenReader: TokenReader): MalType {
+    return tokenReader.next()?.let { atom ->
         when {
             atom == "nil" -> MalNil
             Atoms.integerPattern.matches(atom) -> MalInteger(atom.toInt())
