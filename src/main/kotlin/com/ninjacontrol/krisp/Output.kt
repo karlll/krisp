@@ -19,12 +19,12 @@ object StandardOut : Out {
 }
 
 object Output : Out {
-    var outputter: Out? = StandardOut
+    var target: Out? = StandardOut
     override fun put(string: String) {
-        outputter?.put(string)
+        target?.put(string)
     }
 
     override fun putLine(string: String) {
-        outputter?.putLine(string)
+        target?.putLine(string)
     }
 }

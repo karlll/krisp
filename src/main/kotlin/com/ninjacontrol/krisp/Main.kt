@@ -56,7 +56,8 @@ fun start(
     withInit: Boolean = true,
     args: Array<String>?
 ) {
-    Output.outputter = StandardOut
+    Output.target = StandardOut
+    Input.source = StandardIn
     args?.let {
         replExecutionEnv.set(
             symbol("*ARGV*"),
