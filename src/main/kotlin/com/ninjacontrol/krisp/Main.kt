@@ -56,8 +56,7 @@ fun start(
     withInit: Boolean = true,
     args: Array<String>?
 ) {
-    Output.target = StandardOut
-    Input.source = StandardIn
+
     args?.let {
         replExecutionEnv.set(
             symbol("*ARGV*"),
@@ -111,6 +110,8 @@ fun main(args: Array<String>) {
     val file = args.getOrNull(0)?.let { if (it.startsWith("-")) null else it }
     val withInit = !args.contains("--skipInit")
     val printHelp = args.contains("--help") || args.contains("-h")
+    Output.target = StandardOut
+    Input.source = StandardIn
     when {
         printHelp -> printHelp()
         else -> start(file, withInit, args)

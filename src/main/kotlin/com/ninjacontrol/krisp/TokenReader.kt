@@ -32,12 +32,12 @@ fun readForm(tokenReader: TokenReader): MalType {
             readForm(tokenReader)
         }
         '\'' -> readQuote(tokenReader)
-        '`' -> readQuote(tokenReader, symbol = symbol("quasiquote"))
+        '`' -> readQuote(tokenReader, Symbols.quasiquote)
         '~' ->
             if (tokenReader.peek()?.let { it.getOrNull(1) == '@' } == true) {
-                readQuote(tokenReader, symbol = symbol("splice-unquote"))
+                readQuote(tokenReader, Symbols.`splice-unquote`)
             } else
-                readQuote(tokenReader, symbol = symbol("unquote"))
+                readQuote(tokenReader, Symbols.unquote)
         '@' -> readDerefForm(tokenReader)
         '^' -> readWithMetaForm(tokenReader)
         null -> MalEOF
@@ -50,12 +50,12 @@ fun readWithMetaForm(tokenReader: TokenReader): MalType {
     val metadata = readForm(tokenReader)
     val function = readForm(tokenReader)
     if (metadata == MalEOF || function == MalEOF) throw ParseException("Unexpected EOF")
-    return list(symbol("with-meta"), function, metadata)
+    return list(Symbols.`with-meta`, function, metadata)
 }
 
 fun readDerefForm(tokenReader: TokenReader): MalType {
     tokenReader.skip()
-    val list = list(symbol("deref"))
+    val list = list(Symbols.deref)
     return when (val form = readForm(tokenReader)) {
         is MalError -> form
         is MalEOF -> throw ParseException("Unexpected EOF")
@@ -66,7 +66,7 @@ fun readDerefForm(tokenReader: TokenReader): MalType {
     }
 }
 
-fun readQuote(tokenReader: TokenReader, symbol: MalSymbol = symbol("quote")): MalType {
+fun readQuote(tokenReader: TokenReader, symbol: MalSymbol = Symbols.quote): MalType {
     tokenReader.skip()
     val list = list(symbol)
     return when (val form = readForm(tokenReader)) {
