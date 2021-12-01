@@ -2,27 +2,6 @@ package com.ninjacontrol.krisp
 
 fun read(input: String) = readStr(input)
 
-object Symbols {
-    val def = MalSymbol("def!")
-    val let = MalSymbol("let*")
-    val `do` = MalSymbol("do")
-    val `if` = MalSymbol("if")
-    val fn = MalSymbol("fn*")
-    val quote = MalSymbol("quote")
-    val quasiquote = MalSymbol("quasiquote")
-    val quasiquoteexpand = MalSymbol("quasiquoteexpand")
-    val unquote = MalSymbol("unquote")
-    val eval = MalSymbol("eval")
-    val `splice-unquote` = MalSymbol("splice-unquote")
-    val concat = MalSymbol("concat")
-    val cons = MalSymbol("cons")
-    val vec = MalSymbol("vec")
-    val defMacro = MalSymbol("defmacro!")
-    val macroExpand = MalSymbol("macroexpand")
-    val `try` = MalSymbol("try*")
-    val `catch` = MalSymbol("catch*")
-}
-
 fun eval(ast: MalType, env: Environment): MalType {
     var currentAst = ast
     var nextAst = ast
@@ -335,20 +314,4 @@ fun evalAst(ast: MalType, env: Environment): MalType = when (ast) {
             .toMutableMap()
     )
     else -> ast
-}
-
-fun print(input: MalType, printReadably: Boolean = true) =
-    out(printString(input, printReadably = printReadably))
-
-fun re(input: String, env: Environment) = eval(read(input), env = env)
-fun rep(input: String, env: Environment) = print(re(input, env = env))
-val replExecutionEnv = Environment().apply {
-    add(namespace)
-    set(
-        Symbols.eval,
-        func { args ->
-            eval(args[0], this)
-        }
-    )
-    set(symbol("*host-language*"), string("kotlin"))
 }
