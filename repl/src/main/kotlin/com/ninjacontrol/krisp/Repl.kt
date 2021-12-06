@@ -94,7 +94,7 @@ fun banner() {
 
     out(
         """
-        ❄️  krisp v${BuildVersion.version}️
+        ❄️  krisp v${BuildVersion.version}
         """.trimIndent()
     )
 }
